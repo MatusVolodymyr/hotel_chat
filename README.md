@@ -334,13 +334,3 @@ If you encounter logging issues:
 2. Verify environment variables are set correctly
 3. Run `python test_logging.py` to diagnose issues
 4. Check console output for immediate feedback
-
-## Contributing
-
-When adding new modules:
-
-1. Import the logger: `from app.core.logger import get_logger`
-2. Create a module logger: `logger = get_logger(__name__)`
-3. Add appropriate log statements at key points
-4. Use appropriate log levels
-5. Include contextual information in log messages
