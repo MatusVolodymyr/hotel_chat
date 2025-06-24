@@ -73,6 +73,7 @@ node_modules/
 *.db
 *.sqlite
 *.sqlite3
+pgdata/
 
 # Streamlit
 .streamlit/secrets.toml

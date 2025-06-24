@@ -10,14 +10,15 @@ import sys
 import os
 from typing import List, Dict, Optional
 
-# Add the app directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
+# Add the project root to the Python path
+project_root = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, project_root)
 
+# Import modules directly to avoid circular imports
 from app.core.logger import setup_logging, get_logger
 from app.core.config import settings
-from app.agent.lcel_agent import build_hotel_agent
 
-# Initialize logging for Streamlit
+# Initialize logging first
 setup_logging(
     log_level=settings.LOG_LEVEL,
     log_file=settings.LOG_FILE,
@@ -27,14 +28,22 @@ setup_logging(
 
 logger = get_logger(__name__)
 
+# Now import the agents after logging is setup
+try:
+    from app.agent.lcel_agent import build_hotel_agent
+
+    logger.info("Successfully imported agent modules")
+except Exception as e:
+    logger.error(f"Failed to import agent modules: {e}")
+    st.error(f"Failed to import required modules: {e}")
+    st.stop()
+
 
 class StreamlitHotelChat:
     """Streamlit-based hotel chat interface."""
 
     def __init__(self):
-        self.agent = None
         self._initialize_session_state()
-        self._initialize_agent()
 
     def _initialize_session_state(self):
         """Initialize Streamlit session state variables."""
@@ -44,13 +53,16 @@ class StreamlitHotelChat:
         if "agent_initialized" not in st.session_state:
             st.session_state.agent_initialized = False
 
+        if "agent" not in st.session_state:
+            st.session_state.agent = None
+
     def _initialize_agent(self):
         """Initialize the chat agent."""
         if not st.session_state.agent_initialized:
             try:
                 logger.info("Initializing agent for Streamlit UI")
 
-                self.agent = build_hotel_agent()
+                st.session_state.agent = build_hotel_agent()
                 logger.info("LCEL agent initialized for Streamlit")
                 st.session_state.agent_initialized = True
 
@@ -72,13 +84,47 @@ class StreamlitHotelChat:
         logger.info(f"Processing user input in Streamlit: {user_input[:50]}...")
 
         try:
-            response = self.agent.invoke({"input": user_input})
+            if st.session_state.agent is None:
+                st.error("Agent is not initialized. Please check the configuration.")
+                logger.error("Attempted to invoke agent, but it is not initialized.")
+                return "Agent is not initialized."
+
+            # Convert Streamlit chat history to LangChain format
+            chat_history = []
+            for message in st.session_state.messages:
+                content = message.get("content", "").strip()
+                if content:  # Only add non-empty content
+                    if message["role"] == "user":
+                        chat_history.append(("human", content))
+                    elif message["role"] == "assistant":
+                        chat_history.append(("ai", content))
+
+            # For Gemini, limit conversation history to avoid API issues
+            # Keep only the last 10 exchanges (20 messages)
+            if len(chat_history) > 20:
+                chat_history = chat_history[-20:]
+
+            # Debug: Log the inputs being sent to the agent
+            logger.debug(f"Agent input: {user_input}")
+            logger.debug(f"Chat history length: {len(chat_history)}")
+            for i, (role, content) in enumerate(chat_history):
+                logger.debug(f"History {i}: {role} - {content[:100]}...")
+
+            # Invoke agent with chat history
+            agent_input = {"input": user_input, "chat_history": chat_history}
+            logger.debug(f"Invoking agent with: {agent_input}")
+
+            response = st.session_state.agent.invoke(agent_input)
             result = response.get("output", str(response))
             logger.info("Response generated successfully in Streamlit")
             return result
 
         except Exception as e:
             logger.error(f"Error processing user input in Streamlit: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return f"Sorry, I encountered an error: {str(e)}"
 
     def _reset_conversation(self):
@@ -88,6 +134,7 @@ class StreamlitHotelChat:
 
         # Reinitialize agent
         st.session_state.agent_initialized = False
+        st.session_state.agent = None
         self._initialize_agent()
 
         st.rerun()
@@ -105,21 +152,6 @@ class StreamlitHotelChat:
         # Sidebar
         with st.sidebar:
             st.title("🏨 Hotel Chat Settings")
-
-            # Agent type selection
-            agent_type = st.radio(
-                "Agent Type:",
-                ["LCEL Agent", "Traditional Agent"],
-                index=0 if st.session_state.use_lcel else 1,
-                help="Choose between LCEL-based or traditional LangChain agent",
-            )
-
-            new_use_lcel = agent_type == "LCEL Agent"
-            if new_use_lcel != st.session_state.use_lcel:
-                st.session_state.use_lcel = new_use_lcel
-                st.session_state.agent_initialized = False
-                self._initialize_agent()
-                st.rerun()
 
             st.divider()
 
@@ -167,10 +199,15 @@ class StreamlitHotelChat:
         st.title("🏨 Hotel Chat Assistant")
         st.markdown("Find your perfect accommodation with AI-powered search!")
 
-        # Check if OpenAI API key is configured
-        if not settings.OPENAI_API_KEY:
+        # Check if required API keys are configured
+        if settings.LLM_MODEL.startswith("gpt") and not settings.OPENAI_API_KEY:
             st.error(
                 "⚠️ OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable."
+            )
+            st.stop()
+        elif settings.LLM_MODEL.startswith("gemini") and not settings.GOOGLE_API_KEY:
+            st.error(
+                "⚠️ Google API key not configured. Please set the GOOGLE_API_KEY environment variable."
             )
             st.stop()
 

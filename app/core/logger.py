@@ -18,15 +18,19 @@ class CustomFormatter(logging.Formatter):
     }
     RESET = "\033[0m"
 
+    def __init__(self, fmt=None, datefmt=None, use_colors=True):
+        super().__init__(fmt, datefmt)
+        self.use_colors = use_colors
+
     def format(self, record):
-        # Add color to levelname
-        if record.levelname in self.COLORS:
+        # Add module and function info
+        record.module_func = f"{record.module}.{record.funcName}"
+
+        # Add color to levelname only for console
+        if self.use_colors and record.levelname in self.COLORS:
             record.levelname = (
                 f"{self.COLORS[record.levelname]}{record.levelname}{self.RESET}"
             )
-
-        # Add module and function info
-        record.module_func = f"{record.module}.{record.funcName}"
 
         return super().format(record)
 
@@ -72,10 +76,13 @@ def setup_logging(
                 "()": CustomFormatter,
                 "format": console_format,
                 "datefmt": "%H:%M:%S",
+                "use_colors": True,
             },
             "file": {
+                "()": CustomFormatter,
                 "format": file_format,
                 "datefmt": "%Y-%m-%d %H:%M:%S",
+                "use_colors": False,
             },
         },
         "handlers": {},

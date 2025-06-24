@@ -1,4 +1,10 @@
 import json
+import os
+import sys
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, project_root)
+
 from app.models.room import Room
 from app.services.embedding import embed_text
 from app.db.session import get_db
@@ -6,7 +12,7 @@ from app.core.logger import setup_logging, get_logger
 from datetime import date
 
 # Initialize logging for the script
-setup_logging(log_level="INFO", enable_console=True, enable_file=True)
+setup_logging(log_level="INFO", enable_console=True, enable_file=False)
 logger = get_logger(__name__)
 
 # Example data
@@ -164,12 +170,19 @@ def main():
                         f"Generated embedding for room in {room_data['location']}"
                     )
 
+                    # Convert date strings to date objects
+                    room_data_copy = room_data.copy()
+                    room_data_copy["available_from"] = date.fromisoformat(
+                        room_data["available_from"]
+                    )
+                    room_data_copy["available_to"] = date.fromisoformat(
+                        room_data["available_to"]
+                    )
+
                     # Create room object
                     room = Room(
                         embedding=emb,
-                        **room_data,
-                        available_from=date.fromisoformat(room_data["available_from"]),
-                        available_to=date.fromisoformat(room_data["available_to"]),
+                        **room_data_copy,
                     )
 
                     session.add(room)

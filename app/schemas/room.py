@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 
 
 class RoomBase(BaseModel):
@@ -22,6 +22,8 @@ class RoomCreate(RoomBase):
 
 class RoomOut(RoomBase):
     id: int
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         orm_mode = True

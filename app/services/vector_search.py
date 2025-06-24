@@ -35,13 +35,13 @@ def search_similar_rooms(
 
     # Raw SQL for pgvector similarity
     sql = """
-    SELECT * FROM rooms
-    WHERE
-        (:location IS NULL OR location = :location)
-        AND (:max_price IS NULL OR price <= :max_price)
-    ORDER BY embedding <-> :embedding
-    LIMIT :k
-    """
+        SELECT * FROM rooms
+        WHERE
+            (:location IS NULL OR location = :location)
+            AND (:max_price IS NULL OR price <= :max_price)
+        ORDER BY embedding <-> CAST(:embedding AS vector)
+        LIMIT :k
+        """
 
     try:
         logger.debug("Executing vector similarity search query")
@@ -55,7 +55,8 @@ def search_similar_rooms(
             },
         )
 
-        rooms = [Room(**dict(row)) for row in result]
+        rows = result.mappings().all()  # This gets list of dict-like mappings
+        rooms = [Room(**row) for row in rows]
         logger.info(f"Found {len(rooms)} matching rooms")
 
         if rooms:

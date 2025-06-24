@@ -8,8 +8,15 @@ load_dotenv()
 
 class Settings:
     # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost/hotel_db"
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "hotel_chat")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", 5432))
+
+    DATABASE_URL: str = os.getenv("DATABASE_URL") or (
+        f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@"
+        f"{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
     )
 
     # Logging
@@ -27,14 +34,16 @@ class Settings:
     )
 
     GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "gemini-2.0-flash")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "gpt-4.1-nano")
     LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0"))
 
     # Vector search configuration
-    VECTOR_SEARCH_K: int = int(os.getenv("VECTOR_SEARCH_K", "5"))
+    VECTOR_SEARCH_K: int = int(os.getenv("VECTOR_SEARCH_K", "3"))
 
     # Agent configuration
     AGENT_VERBOSE: bool = os.getenv("AGENT_VERBOSE", "false").lower() == "true"
+
+    model_config = {"env_file": ".env"}
 
 
 settings = Settings()
