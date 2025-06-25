@@ -309,3 +309,10 @@ If you encounter logging issues:
 2. Verify environment variables are set correctly
 3. Run `python test_logging.py` to diagnose issues
 4. Check console output for immediate feedback
+
+## To do
+
+- [ ] Add authentication for API endpoints
+- [ ] Improve promts
+- [ ] Rethink the structure of models to improve retrival
+- [ ] Improve retrival functionality
