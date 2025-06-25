@@ -1,6 +1,6 @@
 # Hotel Chat Application
 
-A LangChain-based hotel room search and chat application with vector similarity search, comprehensive logging, and a Streamlit web interface.
+A LangChain-based hotel room search and chat application with vector similarity search, logging, and a Streamlit web interface.
 
 ## Features
 
@@ -11,20 +11,6 @@ A LangChain-based hotel room search and chat application with vector similarity 
 - 🌐 **Streamlit web interface**
 - 🔧 Configurable environment settings
 - 💬 Interactive chat with conversation memory
-
-## Logging System
-
-This application includes a comprehensive logging system with the following features:
-
-### Features
-
-- **Color-coded console output** with different colors for different log levels
-- **Rotating file logs** with automatic cleanup (10MB files, 5 backups)
-- **Configurable log levels** (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- **Module-specific loggers** for better organization
-- **Performance logging** for database operations and model inference
-- **Error tracking** with full stack traces
-- **Structured logging** with contextual information
 
 ### Configuration
 
@@ -109,8 +95,7 @@ python main.py
 
 The Streamlit interface provides:
 
-- **💬 Interactive Chat**: Modern chat interface with message history
-- **⚙️ Agent Selection**: Switch between LCEL
+- **💬 Interactive Chat**: Сhat interface with message history
 - **🔧 Live Configuration**: View current settings and model info
 - **🔄 Memory Management**: Reset conversation or clear chat history
 - **❓ Built-in Help**: Example queries and feature documentation
@@ -155,14 +140,6 @@ The Streamlit interface provides:
    ```bash
    python main.py
    ```
-
-## Testing Logging
-
-Run the logging test script to verify everything is working:
-
-```bash
-python test_logging.py
-```
 
 This will:
 - Test all log levels
@@ -240,9 +217,7 @@ streamlit run streamlit_app.py
 
 **Features:**
 - Interactive chat interface
-- Real-time agent switching
 - Configuration dashboard
-- Conversation management
 - Mobile-friendly design
 
 ### 💻 Command Line Interface
@@ -284,7 +259,7 @@ Try these sample queries in either interface:
 The following modules now include comprehensive logging:
 
 - **`app.core.logger`** - Logging configuration and utilities
-- **`app.agent.lcel_agent`** - LCEL agent building and execution
+- **`app.agent.lcel_agent`** - agent building and execution
 - **`app.agent.tools.search_for_rooms`** - Room search tool operations
 - **`app.services.embedding`** - Text embedding generation
 - **`app.services.vector_search`** - Vector similarity search
