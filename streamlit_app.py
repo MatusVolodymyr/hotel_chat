@@ -99,7 +99,6 @@ class StreamlitHotelChat:
                     elif message["role"] == "assistant":
                         chat_history.append(("ai", content))
 
-            # For Gemini, limit conversation history to avoid API issues
             # Keep only the last 10 exchanges (20 messages)
             if len(chat_history) > 20:
                 chat_history = chat_history[-20:]
@@ -221,9 +220,6 @@ class StreamlitHotelChat:
 
         # Chat input
         if prompt := st.chat_input("Ask me about hotel rooms..."):
-            # Add user message to chat history
-            st.session_state.messages.append({"role": "user", "content": prompt})
-
             # Display user message
             with st.chat_message("user"):
                 st.markdown(prompt)
@@ -234,6 +230,8 @@ class StreamlitHotelChat:
                     response = self._process_user_input(prompt)
                 st.markdown(response)
 
+            # Add user message to chat history
+            st.session_state.messages.append({"role": "user", "content": prompt})
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
 
